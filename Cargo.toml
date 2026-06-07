@@ -9,6 +9,7 @@ members = [
     "programs/interp-bench",
     "programs/referee",
     "programs/root-bench",
+    "tools/arena-viewer",
     "tools/devnet-dispute",
 ]
 

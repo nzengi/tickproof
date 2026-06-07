@@ -1,0 +1,13 @@
+[package]
+name = "arena-viewer"
+description = "Watch the arena run live through the real program runtime"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+arena = { path = "../../games/arena" }
+crossterm = "0.28"
+tick-core = { path = "../../crates/tick-core" }
+tickproof-runtime = { path = "../../crates/runtime" }

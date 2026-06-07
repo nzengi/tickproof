@@ -29,6 +29,11 @@ cd programs/referee && cargo build-sbf && cd ../..
 cargo test
 ```
 
+To watch it run, `cargo run -p arena-viewer --release` plays the arena
+live in the terminal at 60 ticks per second, every tick executed through
+the real program runtime, with the would-be checkpoint root in the HUD.
+Arrow keys kick ball 0 around.
+
 Current numbers:
 
 - an arena tick costs at most ~2000 CU under the real agave runtime (via
