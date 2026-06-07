@@ -1,0 +1,10 @@
+[package]
+name = "arena"
+description = "Minimal deterministic physics arena, the reference game for tickproof"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+tick-core = { path = "../../crates/tick-core" }

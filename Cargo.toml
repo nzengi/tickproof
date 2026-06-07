@@ -1,0 +1,17 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/tick-core",
+    "games/arena",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+repository = "https://github.com/nzengi/tickproof"
+
+[profile.release]
+overflow-checks = true
+lto = "fat"
+codegen-units = 1

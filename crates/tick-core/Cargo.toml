@@ -1,0 +1,14 @@
+[package]
+name = "tick-core"
+description = "Deterministic, no_std tick-function core for verifiable game engines (SBF-compatible)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+# Intentionally empty: zero deps = zero divergence surface.
+# The same crate compiles to SBF (on-chain referee) and native (off-chain runtime).
+
+[features]
+default = []
