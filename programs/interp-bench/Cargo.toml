@@ -1,0 +1,13 @@
+[package]
+name = "interp-bench"
+description = "Measures what interpreting sbpf inside a contract costs, for the replay comparison"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+[dependencies]
+solana-program = "3.0.0"
