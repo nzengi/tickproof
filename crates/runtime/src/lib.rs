@@ -17,13 +17,16 @@ pub enum EngineError {
     TickFailed(u64),
 }
 
-/// What goes on-chain: at tick `tick`, the state hashed to `state_root`.
-/// A dispute bisects between two of these and replays the single tick
-/// where the parties diverge.
+/// What goes on-chain: at tick `tick` the state hashed to `state_root`,
+/// having consumed inputs committed by `input_chain`. A dispute bisects
+/// between two of these and replays the single tick where the parties
+/// diverge; the chain is what stops the asserter from inventing inputs
+/// at replay time.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Checkpoint {
     pub tick: u64,
     pub state_root: [u8; 32],
+    pub input_chain: [u8; 32],
 }
 
 pub struct Engine {
@@ -33,6 +36,7 @@ pub struct Engine {
     state: Account,
     tick: u64,
     input_log: Vec<Vec<u8>>,
+    input_chain: [u8; 32],
 }
 
 impl Engine {
@@ -59,12 +63,14 @@ impl Engine {
             state,
             tick: 0,
             input_log: Vec::new(),
+            input_chain: [0u8; 32],
         }
     }
 
     /// Advance one tick. Returns the CUs the program consumed.
     pub fn step(&mut self, inputs: &[u8]) -> Result<u64, EngineError> {
-        let mut data = Vec::with_capacity(8 + inputs.len());
+        let mut data = Vec::with_capacity(9 + inputs.len());
+        data.push(0); // Tick instruction
         data.extend_from_slice(&self.tick.to_le_bytes());
         data.extend_from_slice(inputs);
 
@@ -88,6 +94,7 @@ impl Engine {
         self.state = account.clone();
 
         self.input_log.push(inputs.to_vec());
+        self.input_chain = tick_merkle::extend_input_chain(&self.input_chain, inputs);
         self.tick += 1;
         Ok(result.compute_units_consumed)
     }
@@ -110,6 +117,7 @@ impl Engine {
         Checkpoint {
             tick: self.tick,
             state_root: self.state_root(),
+            input_chain: self.input_chain,
         }
     }
 
@@ -232,11 +240,13 @@ mod tests {
         let before = engine.checkpoint();
         assert_eq!(before.tick, 0);
         assert_eq!(before.state_root, tick_merkle::state_root(&genesis));
+        assert_eq!(before.input_chain, [0u8; 32]);
 
         engine.step(&[]).unwrap();
         let after = engine.checkpoint();
         assert_eq!(after.tick, 1);
         assert_ne!(after.state_root, before.state_root);
+        assert_ne!(after.input_chain, before.input_chain);
     }
 
     #[test]

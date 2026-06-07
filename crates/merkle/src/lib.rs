@@ -14,6 +14,7 @@ pub const CHUNK: usize = 32;
 const LEAF_TAG: &[u8] = &[0];
 const NODE_TAG: &[u8] = &[1];
 const ROOT_TAG: &[u8] = &[2];
+const INPUT_TAG: &[u8] = &[3];
 
 fn leaf_hash(chunk: &[u8; CHUNK]) -> [u8; 32] {
     hashv(&[LEAF_TAG, chunk]).to_bytes()
@@ -65,6 +66,14 @@ pub fn state_root(state: &[u8]) -> [u8; 32] {
         level = fold_level(&level);
     }
     root_hash(state.len() as u64, &level[0])
+}
+
+/// Rolling commitment over the input log: chain after tick t+1 is
+/// H(tag, chain after t, inputs of t), starting from all zero. A state
+/// root alone doesn't pin down which inputs produced it; without this
+/// the asserter could invent inputs at replay time.
+pub fn extend_input_chain(prev: &[u8; 32], inputs: &[u8]) -> [u8; 32] {
+    hashv(&[INPUT_TAG, prev, inputs]).to_bytes()
 }
 
 /// Inclusion proof for one chunk. `siblings` runs leaf to root.
@@ -168,6 +177,17 @@ mod tests {
         let before = state_root(&state);
         state[263] ^= 0x80;
         assert_ne!(before, state_root(&state));
+    }
+
+    #[test]
+    fn input_chain_is_order_and_content_sensitive() {
+        let zero = [0u8; 32];
+        let a = extend_input_chain(&zero, b"a");
+        let b = extend_input_chain(&zero, b"b");
+        assert_ne!(a, b);
+        assert_ne!(extend_input_chain(&a, b"b"), extend_input_chain(&b, b"a"));
+        // an empty tick still advances the chain
+        assert_ne!(extend_input_chain(&zero, &[]), zero);
     }
 
     // Frozen so an accidental change to chunking, tags or padding shows

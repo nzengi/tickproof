@@ -17,4 +17,5 @@ tick-merkle = { path = "../merkle" }
 
 [dev-dependencies]
 arena = { path = "../../games/arena" }
+referee = { path = "../../programs/referee" }
 tick-core = { path = "../tick-core" }

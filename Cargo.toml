@@ -6,6 +6,7 @@ members = [
     "crates/runtime",
     "games/arena",
     "programs/arena-program",
+    "programs/referee",
 ]
 
 [workspace.package]
