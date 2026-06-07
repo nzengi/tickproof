@@ -39,11 +39,18 @@ Current numbers:
 - the full one-step proof - pre-state root check, input chain check, CPI
   state load, native CPI tick execution, post-state root, payout - lands
   at ~19k CU, about 1.4% of one transaction's compute budget
-- a complete scripted dispute on devnet (cheating operator, 16-tick
-  range): 12 transactions, 57 slots, ~23 s, 125k lamports in fees total;
-  the bisection cornered the injected lie exactly and the cluster's
-  native replay matched the locally computed trace bit for bit
-  (`tools/devnet-dispute` reproduces it)
-
-Next: throughput at bigger state sizes, and the cost comparison against
-interpreter-in-contract and zkVM-verifier replay.
+- complete scripted disputes on devnet (cheating operator): a 16-tick
+  range settles in 12 transactions / ~23 s / 125k lamports, a 256-tick
+  range in 20 transactions / ~26 s / 205k lamports - the log-scaling is
+  visible in practice. both times the bisection cornered the injected
+  lie exactly and the cluster's native replay matched the locally
+  computed trace bit for bit (`tools/devnet-dispute` reproduces it)
+- the comparison that motivates the design: interpreting sbpf inside a
+  contract costs 80+ CU per emulated instruction even with a deliberately
+  minimal interpreter (`programs/interp-bench`), so re-executing the same
+  tick interpreted starts at ~157k CU before memory proofs, against 19.5k
+  CU for the entire native one-step proof; an SP1 Groth16 verify alone is
+  ~280k CU
+- state root cost scales linearly at ~11 CU/byte (`programs/root-bench`),
+  so even an 8 KB game state keeps the replay instruction under 15% of
+  one transaction's compute budget

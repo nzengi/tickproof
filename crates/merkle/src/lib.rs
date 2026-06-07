@@ -60,10 +60,16 @@ fn fold_level(level: &[[u8; 32]]) -> Vec<[u8; 32]> {
         .collect()
 }
 
+/// Folds in place - one leaf allocation total, which matters on-chain
+/// where the heap is a 32K bump allocator with no free.
 pub fn state_root(state: &[u8]) -> [u8; 32] {
     let mut level = leaves(state);
-    while level.len() > 1 {
-        level = fold_level(&level);
+    let mut n = level.len();
+    while n > 1 {
+        for i in 0..n / 2 {
+            level[i] = node_hash(&level[2 * i], &level[2 * i + 1]);
+        }
+        n /= 2;
     }
     root_hash(state.len() as u64, &level[0])
 }

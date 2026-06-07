@@ -34,8 +34,6 @@ use tick_core::rng::Rng;
 use tickproof_runtime::{Checkpoint, Engine};
 
 const BOND: u64 = 1_000_000;
-const N_TICKS: u64 = 16;
-const LIE_AT: usize = 11;
 
 fn random_inputs(rng: &mut Rng) -> Vec<u8> {
     if rng.next_below(8) == 0 {
@@ -64,7 +62,7 @@ struct Trace {
     log: Vec<Vec<u8>>,
 }
 
-fn honest_trace(elf: &[u8]) -> Trace {
+fn honest_trace(elf: &[u8], n_ticks: u64) -> Trace {
     let mut genesis = [0u8; STATE_SIZE];
     Arena::init(&mut genesis).unwrap();
     let mut engine = Engine::new(elf, &genesis);
@@ -72,7 +70,7 @@ fn honest_trace(elf: &[u8]) -> Trace {
 
     let mut claims = vec![claim_bytes(&engine.checkpoint())];
     let mut states = vec![genesis.to_vec()];
-    for _ in 0..N_TICKS {
+    for _ in 0..n_ticks {
         engine.step(&random_inputs(&mut rng)).unwrap();
         claims.push(claim_bytes(&engine.checkpoint()));
         states.push(engine.state_data().to_vec());
@@ -171,6 +169,15 @@ fn keypair_pubkey(path: &str) -> Pubkey {
 }
 
 fn main() {
+    // args: [tick range] [lie position], default a 16-tick range with the
+    // lie injected at tick 11
+    let args: Vec<String> = std::env::args().collect();
+    let n_ticks: u64 = args.get(1).map_or(16, |s| s.parse().expect("tick range"));
+    let lie_at: usize = args
+        .get(2)
+        .map_or(n_ticks as usize * 2 / 3, |s| s.parse().expect("lie tick"));
+    assert!(lie_at > 0 && (lie_at as u64) <= n_ticks);
+
     let root = concat!(env!("CARGO_MANIFEST_DIR"), "/../..");
     let elf = std::fs::read(format!("{root}/target/deploy/arena_program.so"))
         .expect("run cargo build-sbf in programs/arena-program");
@@ -191,9 +198,9 @@ fn main() {
     println!("referee  {referee_id}");
 
     // local ground truth and the operator's lie
-    let trace = honest_trace(&elf);
+    let trace = honest_trace(&elf, n_ticks);
     let mut asserted = trace.claims.clone();
-    for c in asserted.iter_mut().skip(LIE_AT) {
+    for c in asserted.iter_mut().skip(lie_at) {
         c[0] ^= 0xFF;
     }
 
@@ -242,8 +249,8 @@ fn main() {
     );
 
     let mut cp_data = vec![1u8];
-    cp_data.extend_from_slice(&N_TICKS.to_le_bytes());
-    cp_data.extend_from_slice(&asserted[N_TICKS as usize]);
+    cp_data.extend_from_slice(&n_ticks.to_le_bytes());
+    cp_data.extend_from_slice(&asserted[n_ticks as usize]);
     d.send(
         "checkpoint",
         &[d.referee_ix(
@@ -312,7 +319,7 @@ fn main() {
     let s = d.session_state(&session.pubkey());
     assert_eq!(s.status, status::AWAITING_REPLAY, "bisection didn't corner");
     println!(
-        "cornered: tick {} -> {} (lie was injected at {LIE_AT})",
+        "cornered: tick {} -> {} (lie was injected at {lie_at})",
         s.lo_tick, s.hi_tick
     );
 
