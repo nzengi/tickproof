@@ -1,0 +1,15 @@
+[package]
+name = "arena-program"
+description = "On-chain wrapper around the arena tick function"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+[dependencies]
+arena = { path = "../../games/arena" }
+tick-core = { path = "../../crates/tick-core" }
+solana-program = "3.0.0"

@@ -2,7 +2,9 @@
 resolver = "2"
 members = [
     "crates/tick-core",
+    "crates/runtime",
     "games/arena",
+    "programs/arena-program",
 ]
 
 [workspace.package]
