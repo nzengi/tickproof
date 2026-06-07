@@ -5,6 +5,8 @@ at full speed in an embedded VM, and any disputed tick can be replayed by the
 chain itself - the L1 already executes SBF natively, so the final step of a
 dispute is just a program invocation. No interpreter-in-a-contract, no zkVM.
 
+![arena demo](docs/demo.gif)
+
 Early WIP.
 
 - `crates/tick-core` - no_std deterministic tick primitives: Q32.32 fixed
