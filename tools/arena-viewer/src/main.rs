@@ -58,7 +58,6 @@ fn main() -> std::io::Result<()> {
     let tick_interval = Duration::from_micros(1_000_000 / TICK_RATE);
     let started = Instant::now();
     let mut next_tick = Instant::now();
-    let mut last_cu = 0u64;
     let kick = fx::from_int(3);
 
     'run: loop {
@@ -83,10 +82,10 @@ fn main() -> std::io::Result<()> {
             }
         }
 
-        last_cu = engine.step(&inputs).expect("tick rejected");
+        let last_cu = engine.step(&inputs).expect("tick rejected");
 
         // draw at half the tick rate; the terminal can't keep up with 60
-        if engine.tick() % 2 == 0 {
+        if engine.tick().is_multiple_of(2) {
             let (cols, rows) = terminal::size()?;
             let w = (cols.saturating_sub(2)).min(96) as usize;
             let h = (rows.saturating_sub(4)).min(40) as usize;
