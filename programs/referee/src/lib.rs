@@ -32,9 +32,10 @@ pub const SESSION_LEN: usize = 344;
 
 /// Slots the operator's assertion must sit unchallenged before it can
 /// be finalized, and slots each side gets per dispute move. Prototype
-/// numbers - mainnet values would be hours, not seconds.
+/// numbers, loose enough to drive a dispute over devnet RPC by hand -
+/// mainnet values would be hours, not minutes.
 pub const CHALLENGE_WINDOW_SLOTS: u64 = 64;
-pub const TURN_SLOTS: u64 = 32;
+pub const TURN_SLOTS: u64 = 150;
 
 pub mod status {
     pub const IDLE: u8 = 0;

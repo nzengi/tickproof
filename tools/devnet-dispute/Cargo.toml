@@ -1,0 +1,20 @@
+[package]
+name = "devnet-dispute"
+description = "Scripted dispute against the deployed programs on devnet"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+arena = { path = "../../games/arena" }
+referee = { path = "../../programs/referee" }
+tick-core = { path = "../../crates/tick-core" }
+tickproof-runtime = { path = "../../crates/runtime" }
+# 3.x to match the agave 3.1 cluster era, same reasoning as mollusk
+solana-commitment-config = "3"
+solana-rpc-client = "3"
+solana-rpc-client-api = "3"
+solana-sdk = "3"
+solana-system-interface = { version = "2", features = ["bincode"] }
+solana-transaction-status = "3"

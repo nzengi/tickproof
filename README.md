@@ -29,13 +29,21 @@ cd programs/referee && cargo build-sbf && cd ../..
 cargo test
 ```
 
-Current numbers, all measured under the real agave runtime via mollusk:
+Current numbers:
 
-- an arena tick costs at most ~2000 CU; the SBF build matches the native
-  build bit for bit over a thousand ticks of randomized input
+- an arena tick costs at most ~2000 CU under the real agave runtime (via
+  mollusk); the SBF build matches the native build bit for bit over a
+  thousand ticks of randomized input
+- the engine pushes ~17k ticks/s through the full runtime pipeline
+  off-chain, room for hundreds of 60 Hz sessions per core
 - the full one-step proof - pre-state root check, input chain check, CPI
   state load, native CPI tick execution, post-state root, payout - lands
   at ~19k CU, about 1.4% of one transaction's compute budget
+- a complete scripted dispute on devnet (cheating operator, 16-tick
+  range): 12 transactions, 57 slots, ~23 s, 125k lamports in fees total;
+  the bisection cornered the injected lie exactly and the cluster's
+  native replay matched the locally computed trace bit for bit
+  (`tools/devnet-dispute` reproduces it)
 
-Next: end-to-end dispute on devnet, throughput numbers, and the
-comparison against interpreter-in-contract and zkVM-verifier replay.
+Next: throughput at bigger state sizes, and the cost comparison against
+interpreter-in-contract and zkVM-verifier replay.
