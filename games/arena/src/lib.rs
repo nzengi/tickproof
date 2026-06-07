@@ -50,7 +50,7 @@ impl TickLogic for Arena {
         if state.len() != STATE_SIZE {
             return Err(TickError::BadStateSize);
         }
-        if inputs.len() % INPUT_ENTRY_SIZE != 0 {
+        if !inputs.len().is_multiple_of(INPUT_ENTRY_SIZE) {
             return Err(TickError::BadInput);
         }
 

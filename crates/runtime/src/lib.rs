@@ -9,10 +9,21 @@ use solana_account::Account;
 use solana_instruction::{AccountMeta, Instruction};
 use solana_pubkey::Pubkey;
 
+pub mod log;
+
 #[derive(Debug)]
 pub enum EngineError {
     /// The program rejected the tick. Carries the tick index.
     TickFailed(u64),
+}
+
+/// What goes on-chain: at tick `tick`, the state hashed to `state_root`.
+/// A dispute bisects between two of these and replays the single tick
+/// where the parties diverge.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Checkpoint {
+    pub tick: u64,
+    pub state_root: [u8; 32],
 }
 
 pub struct Engine {
@@ -79,6 +90,27 @@ impl Engine {
         self.input_log.push(inputs.to_vec());
         self.tick += 1;
         Ok(result.compute_units_consumed)
+    }
+
+    /// Rebuild an engine from genesis plus a recorded input log. Stops at
+    /// the first failing tick, which in a dispute is itself the answer.
+    pub fn replay(elf: &[u8], initial_state: &[u8], log: &[Vec<u8>]) -> Result<Self, EngineError> {
+        let mut engine = Self::new(elf, initial_state);
+        for entry in log {
+            engine.step(entry)?;
+        }
+        Ok(engine)
+    }
+
+    pub fn state_root(&self) -> [u8; 32] {
+        tick_merkle::state_root(&self.state.data)
+    }
+
+    pub fn checkpoint(&self) -> Checkpoint {
+        Checkpoint {
+            tick: self.tick,
+            state_root: self.state_root(),
+        }
     }
 
     pub fn state_data(&self) -> &[u8] {
@@ -165,6 +197,46 @@ mod tests {
         }
         println!("max CU per tick over 100 ticks: {max_cu}");
         assert!(max_cu < 100_000, "tick too expensive: {max_cu} CU");
+    }
+
+    // Persist the log, read it back, replay from genesis: the replayed
+    // engine has to land on the exact checkpoint the live one produced.
+    // This is the recovery path a dispute (or a crashed node) relies on.
+    #[test]
+    fn log_roundtrip_replays_to_same_checkpoint() {
+        let mut genesis = [0u8; STATE_SIZE];
+        Arena::init(&mut genesis).unwrap();
+        let elf = arena_elf();
+        let mut live = Engine::new(&elf, &genesis);
+
+        let mut rng = Rng::new(0xD1CE);
+        for _ in 0..200 {
+            live.step(&random_inputs(&mut rng)).unwrap();
+        }
+
+        let mut buf = Vec::new();
+        log::write_log(&mut buf, live.input_log()).unwrap();
+        let recovered = log::read_log(std::io::Cursor::new(buf)).unwrap();
+        let replayed = Engine::replay(&elf, &genesis, &recovered).unwrap();
+
+        assert_eq!(replayed.checkpoint(), live.checkpoint());
+        assert_eq!(replayed.state_data(), live.state_data());
+    }
+
+    #[test]
+    fn checkpoint_tracks_state() {
+        let mut genesis = [0u8; STATE_SIZE];
+        Arena::init(&mut genesis).unwrap();
+        let mut engine = Engine::new(&arena_elf(), &genesis);
+
+        let before = engine.checkpoint();
+        assert_eq!(before.tick, 0);
+        assert_eq!(before.state_root, tick_merkle::state_root(&genesis));
+
+        engine.step(&[]).unwrap();
+        let after = engine.checkpoint();
+        assert_eq!(after.tick, 1);
+        assert_ne!(after.state_root, before.state_root);
     }
 
     #[test]

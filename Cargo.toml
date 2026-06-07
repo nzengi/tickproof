@@ -2,6 +2,7 @@
 resolver = "2"
 members = [
     "crates/tick-core",
+    "crates/merkle",
     "crates/runtime",
     "games/arena",
     "programs/arena-program",
