@@ -429,6 +429,22 @@ impl Harness {
     }
 }
 
+// The web console (web/lib/merkle.ts) derives the genesis claim in the
+// browser; this pins the Rust side of that cross-language agreement.
+// If it drifts, run `npm run check:merkle` in web/ and fix whichever
+// side changed.
+#[test]
+fn genesis_root_pins_cross_language() {
+    let mut genesis = [0u8; STATE_SIZE];
+    Arena::init(&mut genesis).unwrap();
+    let root = tick_merkle::state_root(&genesis);
+    let hex: String = root.iter().map(|b| format!("{b:02x}")).collect();
+    assert_eq!(
+        hex,
+        "d587d68ef64a5ace52c841c496ac5bca41629879ed6e6b17a1c0fbb62cb20bb1"
+    );
+}
+
 #[test]
 fn coop_settle_pays_the_winner() {
     let trace = honest_trace(0xA11CE);

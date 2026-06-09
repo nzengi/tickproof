@@ -1,0 +1,167 @@
+@import "tailwindcss";
+
+@theme {
+  /* cream palette */
+  --color-cream-50: #fdfbf5;
+  --color-cream-100: #faf6ec;
+  --color-cream-200: #f3ecdb;
+  --color-cream-300: #e9dfc6;
+  --color-cream-400: #d9cba6;
+
+  --color-ink-900: #1f1a12;
+  --color-ink-700: #463f31;
+  --color-ink-500: #6e6553;
+  --color-ink-400: #948a74;
+
+  --color-accent-600: #b4540a;
+  --color-accent-700: #93450a;
+  --color-sage-600: #5a7052;
+  --color-claret-600: #9c3d3d;
+
+  --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, "SF Mono", monospace;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-cream-100);
+  color: var(--color-ink-900);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-accent-600);
+  color: var(--color-cream-50);
+}
+
+/* wallet-adapter button, restyled to the cream theme */
+.wallet-adapter-button-trigger {
+  background: var(--color-ink-900) !important;
+  color: var(--color-cream-50) !important;
+  font-family: var(--font-sans) !important;
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  border-radius: 9999px !important;
+  height: 2.5rem !important;
+  padding: 0 1.25rem !important;
+}
+.wallet-adapter-button-trigger:hover {
+  background: var(--color-ink-700) !important;
+}
+.wallet-adapter-modal-wrapper {
+  background: var(--color-cream-50) !important;
+  color: var(--color-ink-900) !important;
+  border-radius: 1rem !important;
+}
+.wallet-adapter-modal-title {
+  color: var(--color-ink-900) !important;
+  font-family: var(--font-display) !important;
+}
+.wallet-adapter-modal-list .wallet-adapter-button {
+  color: var(--color-ink-900) !important;
+  font-family: var(--font-sans) !important;
+}
+.wallet-adapter-modal-list .wallet-adapter-button:hover {
+  background: var(--color-cream-200) !important;
+}
+
+/* article typography */
+.prose-cream h2 {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  line-height: 1.25;
+  font-weight: 600;
+  margin-top: 3rem;
+  margin-bottom: 1rem;
+  letter-spacing: -0.01em;
+}
+.prose-cream h3 {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+.prose-cream p {
+  margin-bottom: 1.1rem;
+  line-height: 1.75;
+  color: var(--color-ink-700);
+}
+.prose-cream strong {
+  color: var(--color-ink-900);
+}
+.prose-cream ul,
+.prose-cream ol {
+  margin: 0 0 1.1rem 1.4rem;
+  line-height: 1.7;
+  color: var(--color-ink-700);
+}
+.prose-cream ul {
+  list-style: disc;
+}
+.prose-cream ol {
+  list-style: decimal;
+}
+.prose-cream li {
+  margin-bottom: 0.35rem;
+}
+.prose-cream code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: var(--color-cream-200);
+  border-radius: 0.3rem;
+  padding: 0.1rem 0.35rem;
+}
+.prose-cream pre {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  line-height: 1.6;
+  background: var(--color-ink-900);
+  color: var(--color-cream-100);
+  border-radius: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  overflow-x: auto;
+  margin-bottom: 1.25rem;
+}
+.prose-cream pre code {
+  background: transparent;
+  padding: 0;
+  font-size: inherit;
+}
+.prose-cream a {
+  color: var(--color-accent-600);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.prose-cream a:hover {
+  color: var(--color-accent-700);
+}
+.prose-cream blockquote {
+  border-left: 3px solid var(--color-accent-600);
+  padding-left: 1.25rem;
+  font-style: italic;
+  color: var(--color-ink-500);
+  margin-bottom: 1.1rem;
+}
+.prose-cream table {
+  width: 100%;
+  font-size: 0.875rem;
+  border-collapse: collapse;
+  margin-bottom: 1.25rem;
+}
+.prose-cream th {
+  text-align: left;
+  font-weight: 600;
+  border-bottom: 2px solid var(--color-cream-400);
+  padding: 0.5rem 0.75rem;
+}
+.prose-cream td {
+  border-bottom: 1px solid var(--color-cream-300);
+  padding: 0.5rem 0.75rem;
+  color: var(--color-ink-700);
+}
