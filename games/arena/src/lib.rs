@@ -43,6 +43,36 @@ impl Arena {
     }
 }
 
+/// Match verdict encoding shared with anything that settles on it.
+pub mod side {
+    pub const DRAW: u8 = 0;
+    pub const FIRST: u8 = 1;
+    pub const SECOND: u8 = 2;
+}
+
+const CENTER: Fx = fx::from_int(128);
+
+/// Win condition over a final state: ball 0 belongs to the first player,
+/// ball 1 to the second, and whoever parked closer to the arena center
+/// wins. Squared distances in i128 so the comparison cannot overflow even
+/// on adversarial state bytes that never went through `tick`.
+pub fn verdict(state: &[u8]) -> Result<u8, TickError> {
+    if state.len() != STATE_SIZE {
+        return Err(TickError::BadStateSize);
+    }
+    let d2 = |ball: usize| -> i128 {
+        let base = 8 + ball * 32;
+        let dx = le::read_i64(state, base) as i128 - CENTER as i128;
+        let dy = le::read_i64(state, base + 8) as i128 - CENTER as i128;
+        (dx * dx).saturating_add(dy * dy)
+    };
+    Ok(match d2(0).cmp(&d2(1)) {
+        core::cmp::Ordering::Less => side::FIRST,
+        core::cmp::Ordering::Greater => side::SECOND,
+        core::cmp::Ordering::Equal => side::DRAW,
+    })
+}
+
 impl TickLogic for Arena {
     const STATE_SIZE: usize = STATE_SIZE;
 
@@ -193,5 +223,38 @@ mod tests {
     fn rejects_bad_state_size() {
         let mut state = [0u8; STATE_SIZE - 1];
         assert_eq!(Arena::tick(&mut state, &[], 0), Err(TickError::BadStateSize));
+        assert_eq!(verdict(&state), Err(TickError::BadStateSize));
+    }
+
+    #[test]
+    fn verdict_picks_the_ball_nearer_the_center() {
+        let mut state = [0u8; STATE_SIZE];
+        Arena::init(&mut state).unwrap();
+        // genesis: ball 0 at (32,32), ball 1 at (60,60); ball 1 is closer
+        assert_eq!(verdict(&state), Ok(side::SECOND));
+
+        // park ball 0 dead center
+        le::write_i64(&mut state, 8, CENTER);
+        le::write_i64(&mut state, 16, CENTER);
+        assert_eq!(verdict(&state), Ok(side::FIRST));
+
+        // mirror positions tie exactly
+        le::write_i64(&mut state, 8, fx::from_int(100));
+        le::write_i64(&mut state, 16, fx::from_int(128));
+        le::write_i64(&mut state, 8 + 32, fx::from_int(156));
+        le::write_i64(&mut state, 16 + 32, fx::from_int(128));
+        assert_eq!(verdict(&state), Ok(side::DRAW));
+    }
+
+    #[test]
+    fn verdict_survives_adversarial_extremes() {
+        let mut state = [0u8; STATE_SIZE];
+        for ball in 0..2 {
+            let base = 8 + ball * 32;
+            le::write_i64(&mut state, base, i64::MIN);
+            le::write_i64(&mut state, base + 8, i64::MAX);
+        }
+        // must not panic; equal extremes tie
+        assert_eq!(verdict(&state), Ok(side::DRAW));
     }
 }

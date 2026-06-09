@@ -15,10 +15,11 @@
 //! replay transaction can never land, the deadline runs out, and the
 //! challenger wins by timeout. Burden of proof sits with the asserter.
 
+#[cfg(not(feature = "no-entrypoint"))]
+use solana_program::entrypoint;
 use solana_program::{
     account_info::{next_account_info, AccountInfo},
     clock::Clock,
-    entrypoint,
     entrypoint::ProgramResult,
     instruction::{AccountMeta, Instruction},
     program::invoke,
@@ -131,9 +132,10 @@ fn err(code: u32) -> ProgramError {
     ProgramError::Custom(code)
 }
 
+#[cfg(not(feature = "no-entrypoint"))]
 entrypoint!(process_instruction);
 
-fn process_instruction(
+pub fn process_instruction(
     program_id: &Pubkey,
     accounts: &[AccountInfo],
     data: &[u8],

@@ -9,8 +9,10 @@ members = [
     "programs/interp-bench",
     "programs/referee",
     "programs/root-bench",
+    "programs/wager",
     "tools/arena-viewer",
     "tools/devnet-dispute",
+    "tools/devnet-match",
 ]
 
 [workspace.package]

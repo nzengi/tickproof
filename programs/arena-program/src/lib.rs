@@ -13,10 +13,15 @@
 //!     The account has to sign, which keeps anyone from overwriting a
 //!     live session's state - scratch accounts are throwaway keypairs,
 //!     real state accounts never sign anything.
+//!
+//! 2 = Verdict: no data. Reads account 0 and publishes the match verdict
+//!     (draw / first player / second player) as CPI return data. The win
+//!     condition lives with the game, so escrow programs can settle any
+//!     tick game without knowing its state layout.
 
 use arena::Arena;
 use solana_program::{
-    account_info::AccountInfo, entrypoint, entrypoint::ProgramResult,
+    account_info::AccountInfo, entrypoint, entrypoint::ProgramResult, program::set_return_data,
     program_error::ProgramError, pubkey::Pubkey,
 };
 use tick_core::{TickError, TickLogic};
@@ -36,6 +41,7 @@ fn process_instruction(
     match data.split_first() {
         Some((0, rest)) => tick(state, rest),
         Some((1, rest)) => load_state(state, rest),
+        Some((2, [])) => verdict(state),
         _ => Err(ProgramError::InvalidInstructionData),
     }
 }
@@ -52,6 +58,13 @@ fn tick(state: &AccountInfo, data: &[u8]) -> ProgramResult {
         TickError::BadStateSize => ProgramError::InvalidAccountData,
         TickError::BadInput => ProgramError::InvalidInstructionData,
     })
+}
+
+fn verdict(state: &AccountInfo) -> ProgramResult {
+    let state_data = state.try_borrow_data()?;
+    let winner = arena::verdict(&state_data).map_err(|_| ProgramError::InvalidAccountData)?;
+    set_return_data(&[winner]);
+    Ok(())
 }
 
 fn load_state(state: &AccountInfo, data: &[u8]) -> ProgramResult {

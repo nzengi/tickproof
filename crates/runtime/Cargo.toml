@@ -19,3 +19,4 @@ tick-merkle = { path = "../merkle" }
 arena = { path = "../../games/arena" }
 referee = { path = "../../programs/referee" }
 tick-core = { path = "../tick-core" }
+wager = { path = "../../programs/wager" }

@@ -24,6 +24,11 @@ Early WIP.
   checkpoints, a challenger bonds and bisects down to the single tick
   where the parties diverge, and that tick is replayed on-chain via CPI
   into the actual game program
+- `programs/wager` - trustless stake escrow on top of the referee: two
+  players lock lamports, play off-chain, and settle either by co-signing
+  the result or by proving the final checkpoint through the referee; the
+  game program itself names the winner (a Verdict CPI over the proven
+  state), so no server, oracle or opponent is ever trusted with the pot
 
 ```
 cd programs/arena-program && cargo build-sbf && cd ../..
@@ -61,3 +66,13 @@ Current numbers:
 - state root cost scales linearly at ~11 CU/byte (`programs/root-bench`),
   so even an 8 KB game state keeps the replay instruction under 15% of
   one transaction's compute budget
+- real staked matches settle trustlessly on devnet (`tools/devnet-match`):
+  the honest path - escrow both stakes, assert the final checkpoint, sit
+  out the challenge window, settle - takes 6 transactions / ~31 s / 65k
+  lamports in fees, with the settle instruction (root check + LoadState +
+  Verdict CPIs + payout) at ~13k CU. the adversarial path (`--cheat`,
+  the reporter lies about the result) runs the full machinery for real:
+  challenge, 5 bisection rounds cornering the lie at the exact tick,
+  native replay convicting the cheater, then honest settlement - 20
+  transactions / ~47 s, the cheater's bond goes to the challenger and
+  the pot still goes to whoever actually won the game

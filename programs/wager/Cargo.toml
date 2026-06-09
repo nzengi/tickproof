@@ -1,6 +1,6 @@
 [package]
-name = "referee"
-description = "On-chain dispute referee: checkpoints, bisection, native single-tick replay"
+name = "wager"
+description = "Trustless stake escrow for two-player tick games, settled by referee checkpoints"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -10,9 +10,10 @@ repository.workspace = true
 crate-type = ["cdylib", "lib"]
 
 [features]
-# for crates that read Session as a library and link their own entrypoint
+# for crates that read Match as a library and link their own entrypoint
 no-entrypoint = []
 
 [dependencies]
 solana-program = "3.0.0"
 tick-merkle = { path = "../../crates/merkle" }
+referee = { path = "../referee", features = ["no-entrypoint"] }
