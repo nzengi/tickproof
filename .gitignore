@@ -1,3 +1,5 @@
 /target
 Cargo.lock
-docs/*.md
+docs/BEYOND-GAMES.md
+docs/HONEST-TAKE.md
+docs/ROADMAP.md
